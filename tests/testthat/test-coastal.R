@@ -1,0 +1,10 @@
+testthat::test_that("marine bands exclude land and respect geographic clipping", {
+  land <- sf::st_sf(geometry=domain_bbox(0,0,2,2)$geometry)
+  d <- domain_shore_buffer(land,c(-1,.2,1,1.8),50000)
+  testthat::expect_equal(domain_contains(d,c(-.1,.1,-.9,-.1),c(1,1,1,1.9)),c(TRUE,FALSE,FALSE,FALSE))
+  band <- domain_shore_buffer(land,c(-1,.2,1,1.8),50000,20000)
+  testthat::expect_equal(domain_contains(band,c(-.05,-.3),c(1,1)),c(FALSE,TRUE))
+  island <- domain_pick_land(land,1,1)
+  testthat::expect_true(domain_contains(domain_island_buffer(land,island,c(-1,.2,1,1.8),50000),-.1,1))
+  testthat::expect_error(domain_pick_land(land,-1,1))
+})
