@@ -55,13 +55,12 @@ testthat::test_that("overlay concatenation is robust to a masked base c function
   testthat::expect_equal(sf::st_crs(fn(p)),sf::st_crs(p))
 })
 
-testthat::test_that("nested collections and mixed polygon types are normalized", {
+testthat::test_that("geometry collections and mixed polygon types are normalized", {
   p <- domain_bbox(0,0,1,1)$geometry[[1]]
   q <- domain_bbox(2,2,3,3)$geometry[[1]]
   mp <- sf::st_multipolygon(list(unclass(q)))
-  nested <- sf::st_geometrycollection(list(sf::st_point(c(5,5)),
-    sf::st_geometrycollection(list(p,mp))))
-  x <- sf::st_sfc(nested,crs="OGC:CRS84")
+  mixed <- sf::st_geometrycollection(list(sf::st_point(c(5,5)),p,mp))
+  x <- sf::st_sfc(mixed,crs="OGC:CRS84")
   out <- domain_polygonal_overlay(x)
   testthat::expect_equal(length(out),2L)
   testthat::expect_true(all(as.character(sf::st_geometry_type(out))=="MULTIPOLYGON"))

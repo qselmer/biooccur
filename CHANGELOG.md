@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — integration test fixture correction
+
+- Replace unsupported nested collection constructor in unit test with valid mixed polygon/point collection.
+- Scope integration options restoration to a function using on.exit.
+- User reported 29 passing expectations and one fixture construction failure; real GSHHG integration not yet reached.
+
 ## 0.0.2-dev — heterogeneous overlay diagnostics
 
 - User reported 27 passing expectations and successful F01; real continental F02 case still failed with do.call error (exact call unknown).

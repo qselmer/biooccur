@@ -1,6 +1,7 @@
 # Real-data integration checks, using locally cached GSHHG Full.
 source("R/main.R")
 local({
+  run_integration <- function() {
   old <- options(biooccur.spatial.trace=TRUE)
   on.exit(options(old),add=TRUE)
   land <- domain_land()
@@ -15,4 +16,6 @@ local({
     stopifnot(all(sf::st_is_valid(d$geometry)),domain_summary(d)$area_km2>0)
     print(domain_summary(d))
   }
+  }
+  run_integration()
 })
