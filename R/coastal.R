@@ -14,7 +14,12 @@ domain_shore_buffer <- function(land, bbox, distance_m, min_distance_m = 0,
   # Select whole land features intersecting an expanded search region.
   search <- sf::st_buffer(clip, distance_m * 1.1, max_cells = max_cells)
   select_land <- function(x) {
-    x <- sf::st_geometry(domain_prepare_land(x))
+    bounds <- s2::s2_bounds_rect(sf::st_as_s2(search))
+    xmin <- min(bounds$lng_lo); xmax <- max(bounds$lng_hi)
+    if (any(bounds$lng_lo > bounds$lng_hi)) { xmin <- -180; xmax <- 180 }
+    candidates <- domain_land_candidates(x,c(xmin,min(bounds$lat_lo),xmax,max(bounds$lat_hi)))
+    if (!length(sf::st_geometry(candidates))) stop("No shoreline reference intersects the search region.")
+    x <- sf::st_geometry(domain_prepare_land(candidates))
     x <- x[lengths(sf::st_intersects(x, search)) > 0L]
     if (!length(x)) stop("No shoreline reference intersects the search region.")
     sf::st_union(x)
@@ -26,7 +31,8 @@ domain_shore_buffer <- function(land, bbox, distance_m, min_distance_m = 0,
   inner <- if (min_distance_m > 0) sf::st_buffer(target,min_distance_m,max_cells=max_cells) else target
   band <- sf::st_difference(sf::st_intersection(outer,clip), inner)
   band <- sf::st_difference(band, all_land)
-  band <- sf::st_collection_extract(band, "POLYGON", warn = FALSE)
+  if (any(as.character(sf::st_geometry_type(band)) == "GEOMETRYCOLLECTION"))
+    band <- sf::st_collection_extract(band, "POLYGON", warn = FALSE)
   result <- domain_validate(band, repair = TRUE)
   result$reference <- sf::st_boundary(target)
   result$distance_m <- distance_m
@@ -46,7 +52,9 @@ domain_pick_land <- function(land, lon, lat) {
   old <- sf::sf_use_s2()
   on.exit(sf::sf_use_s2(old),add=TRUE)
   sf::sf_use_s2(TRUE)
-  parts <- sf::st_cast(sf::st_geometry(domain_prepare_land(land)), "POLYGON")
+  candidates <- domain_land_candidates(land,c(lon,lat,lon,lat))
+  if (!length(sf::st_geometry(candidates))) stop("Selection point must identify exactly one land polygon.")
+  parts <- sf::st_cast(sf::st_geometry(domain_prepare_land(candidates)), "POLYGON")
   p <- sf::st_sfc(sf::st_point(c(lon,lat)),crs="OGC:CRS84")
   hit <- sf::st_intersects(p,parts,model="closed")[[1]]
   if (length(hit)!=1L) stop("Selection point must identify exactly one land polygon.")

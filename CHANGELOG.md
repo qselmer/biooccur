@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.2-dev — regional shoreline preparation
+
+- Avoid global S2 validation during loading; preselect regional candidates before predicates.
+- Retry relevant invalid features at documented snap precisions.
+- Extract polygon collections only when needed; add regional regression test.
+- Real GSHHG execution pending.
+
 ## 0.0.2-dev — shoreline topology fix
 
 - Validate and repair S2-invalid shoreline features before spatial predicates, retaining full resolution and original source files.

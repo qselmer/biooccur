@@ -18,3 +18,14 @@ testthat::test_that("shoreline topology is checked before S2 predicates", {
   testthat::expect_equal(fixed$id,1L)
   testthat::expect_equal(attr(fixed,"biooccur_repaired_features"),1L)
 })
+
+testthat::test_that("unrelated invalid land does not block regional predicates", {
+  local <- domain_bbox(0,0,2,2)$geometry
+  ring <- rbind(c(30,30),c(32,30),c(32,32),c(31,31),c(30,32),c(31,31),c(30,30))
+  remote <- sf::st_sfc(sf::st_polygon(list(ring)),crs="OGC:CRS84")
+  land <- sf::st_sf(geometry=c(local,remote))
+  testthat::expect_equal(length(sf::st_geometry(domain_land_candidates(land,c(-1,-1,3,3)))),1L)
+  testthat::expect_warning(d <- domain_shore_buffer(land,c(-1,.2,1,1.8),50000), NA)
+  testthat::expect_true(domain_contains(d,-.1,1))
+  testthat::expect_equal(length(domain_pick_land(land,1,1)),1L)
+})

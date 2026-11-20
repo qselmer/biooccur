@@ -20,6 +20,21 @@ domain_prepare_land <- function(x) {
     message("Repairing ",length(bad)," invalid shoreline features (S2 topology).")
     fixed <- sf::st_make_valid(g[bad],s2_options=s2::s2_options(
       snap=s2::s2_snap_precision(1e7)))
+    remaining <- which(!s2::s2_is_valid(sf::st_as_s2(fixed,check=FALSE)))
+    for (precision in c(1e6,1e5)) {
+      if (!length(remaining)) break
+      candidate <- sf::st_make_valid(g[bad[remaining]],s2_options=s2::s2_options(
+        snap=s2::s2_snap_precision(precision)))
+      ok <- s2::s2_is_valid(sf::st_as_s2(candidate,check=FALSE)) &
+        !sf::st_is_empty(candidate) &
+        as.character(sf::st_geometry_type(candidate)) %in% c("POLYGON","MULTIPOLYGON")
+      ids <- which(ok)
+      if (length(ids)) {
+        message("Recovered ",length(ids)," shoreline features at snap precision ",precision)
+        fixed[remaining[ids]] <- candidate[ids]
+        remaining <- setdiff(remaining,remaining[ids])
+      }
+    }
     if (any(sf::st_is_empty(fixed)) ||
         !all(as.character(sf::st_geometry_type(fixed)) %in% c("POLYGON","MULTIPOLYGON")))
       stop("Shoreline repair changed polygon type or produced empty features.")
@@ -31,6 +46,19 @@ domain_prepare_land <- function(x) {
   if (inherits(x,"sf")) sf::st_geometry(x) <- g else x <- g
   attr(x,"biooccur_repaired_features") <- bad
   x
+}
+
+# Numeric envelope selection before topology predicates.
+domain_land_candidates <- function(x, bbox) {
+  if (!inherits(x,c("sf","sfc")) || is.na(sf::st_crs(x)))
+    stop("Land reference must have a known CRS.")
+  x <- sf::st_transform(x,"OGC:CRS84")
+  keep <- vapply(sf::st_geometry(x),function(g) {
+    b <- sf::st_bbox(g)
+    isTRUE(b[1] <= bbox[3] && b[3] >= bbox[1] &&
+           b[2] <= bbox[4] && b[4] >= bbox[2])
+  },logical(1))
+  if (inherits(x,"sf")) x[keep,,drop=FALSE] else x[keep]
 }
 
 # GSHHG 2.3.7, full resolution, level 1 (land/ocean).
@@ -49,7 +77,8 @@ domain_land <- function(path = NULL, resolution = "f",
   } else label <- "Land: supplied reference layer"
   x <- sf::st_read(path, quiet = TRUE)
   if (is.na(sf::st_crs(x))) stop("Land reference must have a known CRS.")
-  x <- domain_prepare_land(x)
+  # Preserve global source; validate only regional analytical candidates.
+  x <- sf::st_transform(x,"OGC:CRS84")
   attr(x,"biooccur_source") <- label
   x
 }

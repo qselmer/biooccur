@@ -54,3 +54,7 @@ Reference: Wessel & Smith (1996), doi:10.1029/96JB00104.
 ## Shoreline topology fix
 
 GSHHG full-resolution polygons may fail S2 validation (duplicate vertex). Validate unchecked S2 conversion solely for diagnosis; rebuild invalid features using st_make_valid with 1e7 snap precision, then verify all features before predicates. No resolution downgrade, feature dropping or original-file mutation. Repair may alter local topology and coordinates slightly; report affected feature indices in memory. GEOS display repair/cropping occurs only on a separate copy. The new regression test and real GSHHG gallery require execution. No certification yet.
+
+## Regional topology preparation
+
+User reported 19 passing expectations and three redundant polygon extraction warnings; real GSHHG still failed after global repair. Loading preserves the original global layer without requiring global S2 validity. Display uses local planar geometry only. Coastal and island predicates preselect regional candidates by numeric envelopes before S2 validation. Relevant invalid polygons still fail explicitly if not repairable. Retry invalid features at snap precisions 1e6 and 1e5 after 1e7, accepting only valid polygonal results. Repairs can alter local coordinates at approximately decimeter to meter scale; no certified accuracy. This envelope prefilter is intended for regional shoreline coordinates, not certified for global, polar or antimeridian domains. Conditional extraction removes redundant warnings. Real-data execution pending.
