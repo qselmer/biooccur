@@ -1,0 +1,12 @@
+# Run: Rscript scripts/01_spatial_domain.R config.yml
+source("R/main.R")
+args <- commandArgs(trailingOnly = TRUE)
+config <- yaml::read_yaml(if (length(args)) args[1] else "config.yml")
+domain <- domain_from_config(config)
+dir.create("cout/spatial", recursive = TRUE, showWarnings = FALSE)
+domain_export(domain, "cout/spatial/domain.geojson", overwrite = TRUE)
+utils::write.csv(domain_summary(domain), "cout/spatial/domain_summary.csv", row.names = FALSE)
+utils::write.csv(as.data.frame(as.list(domain_query_bbox(domain))), "cout/spatial/query_bbox.csv", row.names = FALSE)
+ggplot2::ggsave("cout/spatial/F01_study_area.png", domain_plot(domain), width = 8, height = 6, dpi = 600)
+ggplot2::ggsave("cout/spatial/F01_study_area.pdf", domain_plot(domain), width = 8, height = 6)
+print(domain_summary(domain))

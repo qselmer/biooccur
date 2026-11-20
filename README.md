@@ -2,11 +2,9 @@
 
 Biodiversity occurrence data discovery, acquisition, harmonization, quality assessment and exploratory diagnostics.
 
-**Status: 0.0.1-dev — specification and foundation only.** No working downloader or application is released yet.
+**Status: 0.0.2-dev — draft spatial backend, execution pending.** No working downloader or integrated Shiny application is released yet.
 
-Designed for arbitrary spatial domains, optional taxonomic selection, OBIS and GBIF acquisition, transparent quality control and reproducible scientific figures through a shared R backend, Shiny and Quarto.
-
-See [biooccur.md](biooccur.md) for the canonical specification and 30 figure requirements, and [CHANGELOG.md](CHANGELOG.md) for development history.
+See [biooccur.md](biooccur.md) for the canonical specification and all 30 figures, [Spatial engine](docs/spatial-engine.md) for installation and execution, and [CHANGELOG.md](CHANGELOG.md).
 
 Workflow: configure → define domain → discover → acquire → harmonize → validate → assess → export.
 

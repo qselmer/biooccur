@@ -1,6 +1,6 @@
 # BioOccur — Canonical scientific and technical specification
 
-Version: 0.0.1-dev | 2026-11-20
+Version: 0.0.2-dev | 2026-11-20
 
 ## 1. Mission
 Phase I discovers, acquires, harmonizes, validates and characterizes biodiversity occurrence data for marine, freshwater and terrestrial systems. Determine what information exists, where, when, for which taxa, from which sources and with what limitations. Phase II adds environmental and trait data; Phase III adds ecological models. Occurrence density is not abundance; missing records are not confirmed absences.
@@ -69,4 +69,4 @@ Raw, standardized, validated and flagged records; exclusion reasons, provenance,
 testthat unit/integration tests with explicitly synthetic fixtures; opt-in live API tests. Test invalid geometries, holes, multipolygons, antimeridian, empty responses, interrupted/resumed acquisition, duplicate candidates, missing fields and provenance retention. Compare source counts and document discrepancies. Resolve actual dependencies before creating renv lockfile. Roadmap: 0.0.1 foundation; 0.0.2 spatial; 0.0.3 discovery; 0.0.4 acquisition; 0.0.5 validation; 0.0.6 assessment/figures; 0.0.7 Quarto; 0.1.0 integrated Shiny. Software paper requires empirical validation and comparisons with existing tools; novelty is not assumed.
 
 ## 12. Status
-Specification and example configuration only. No executable geometry engine, connectors, Shiny application, figures or tests yet. Next: configuration validation and spatial engine. Inspect original OceanHackWeek functions before reuse.
+Draft spatial backend, configuration dispatch, F01/F02 scripts and synthetic tests added. Execution and certification pending; see [spatial engine documentation](docs/spatial-engine.md). No live connectors or Shiny application yet. Next: execute spatial tests and resolve defects before discovery. Inspect original OceanHackWeek functions before reuse.

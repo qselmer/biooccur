@@ -1,3 +1,3 @@
 # Tests
 
-Planned testthat unit tests, synthetic fixtures and opt-in API integration tests. No executable tests yet.
+Run from repository root: Rscript tests/run-tests.R. Synthetic spatial tests are provided; execution pending. Live API tests will be opt-in in future releases.
