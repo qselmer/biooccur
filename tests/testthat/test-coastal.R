@@ -44,3 +44,13 @@ testthat::test_that("a coastal window without shoreline fails explicitly", {
   land <- sf::st_sf(geometry=domain_bbox(0,0,10,10)$geometry)
   testthat::expect_error(domain_shore_buffer(land,c(4,4,5,5),10000),"No shoreline lines")
 })
+
+testthat::test_that("overlay concatenation is robust to a masked base c function", {
+  p <- domain_bbox(0,0,1,1)$geometry
+  fn <- domain_polygonal_overlay
+  masked <- new.env(parent=environment(fn))
+  masked$c <- structure(list(geometry=p),class="biooccur_domain")
+  environment(fn) <- masked
+  testthat::expect_equal(length(fn(p)),1L)
+  testthat::expect_equal(sf::st_crs(fn(p)),sf::st_crs(p))
+})

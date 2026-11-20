@@ -62,3 +62,7 @@ User reported 19 passing expectations and three redundant polygon extraction war
 ## Regional shoreline-line buffering
 
 User reported 23 passing expectations, zero warnings and successful F01; F02 failed at the continental buffer with a nonpolygonal domain error. The exact overlay type was not reported. Buffer the true boundary of the selected land union, clipped to an expanded search window only after boundary extraction, rather than buffer entire continental polygons. Remove the inner distance buffer and all land; retain positive-area polygonal components after each overlay. Stop with stage-specific geometry types if no polygonal area remains. Use at least 20,000 S2 cells for regional line buffers; this is still an approximation, not a guaranteed distance tolerance. No coastline resolution downgrade. New tests and real-data execution pending.
+
+## Session isolation
+
+The prior gallery assigned a domain to the global name c. Subsequent do.call(c, parts) failed because c resolved to a domain object. Use base::do.call(base::c, parts) and evaluate gallery data in a local environment. Added regression test with a deliberately masked c binding. Restart R after updating to remove stale session objects. New execution pending.

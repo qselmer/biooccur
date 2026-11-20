@@ -16,7 +16,7 @@ domain_polygonal_overlay <- function(x, stage = "overlay") {
   }
   if (!length(parts))
     stop(stage,": no polygonal area; returned types: ",paste(unique(types),collapse=", "))
-  p <- do.call(c,parts)
+  p <- base::do.call(base::c, parts)
   p <- p[as.numeric(sf::st_area(p)) > 0]
   if (!length(p)) stop(stage,": no positive-area polygonal components.")
   p

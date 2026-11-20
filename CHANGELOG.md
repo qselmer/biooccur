@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — session isolation fix
+
+- Qualify base::c in overlay concatenation to prevent global-object masking.
+- Isolate gallery objects in a local environment; use descriptive domain names.
+- Add masking regression test. User reported three failures caused by nonfunction c; execution of fix pending.
+
 ## 0.0.2-dev — regional shoreline-line buffers
 
 - Buffer actual regional shoreline lines rather than entire land polygons.
