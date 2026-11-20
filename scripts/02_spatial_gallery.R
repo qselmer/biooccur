@@ -42,7 +42,9 @@ local({
       caption=paste(attr(land,"biooccur_source"),"| Cyan: study domain | Beige: land | Brown: reference shoreline"),
       theme=ggplot2::theme_minimal(base_size=16))
   ggplot2::ggsave("cout/spatial/F02_geometry_gallery.png",fig,width=16,height=28,dpi=600,bg="white")
-  tab <- base::do.call(base::rbind,lapply(names(domains),function(n)
-    cbind(mode=n,domain_metrics(domains[[n]],land))))
+  tab <- base::do.call(base::rbind,lapply(names(domains),function(n) {
+    message("F02 metrics: ",n)
+    cbind(mode=n,domain_metrics(domains[[n]],land))
+  }))
   utils::write.csv(tab,"cout/spatial/F02_geometry_summary.csv",row.names=FALSE)
 })

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — native S2 area diagnostics
+
+- User confirmed 44 passing expectations and F01 (152706.8 km²; 94.70236% marine); F02 metrics failed on a land-overlap repair.
+- Measure area-only overlaps and differences directly in S2 using polygon-dimensional outputs, avoiding WKB reconstruction of boundary contacts.
+- Keep geometry-producing operations strict; add boundary-contact and band tests, panel-specific metric logging. Execution pending.
+
 ## 0.0.2-dev — environment overlay topology
 
 - Use direct complementary intersection/difference against the original validated land mask.

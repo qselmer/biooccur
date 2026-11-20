@@ -22,6 +22,28 @@ domain_land_overlap <- function(domain,land) {
   domain_checked_polygons(sf::st_intersection(sf::st_union(domain$geometry),mask), "Land overlap")
 }
 
+# Area-only boolean operations stay in S2: no WKB round trip or polygon
+# reconstruction for shared boundaries. Polygon-only output excludes contacts
+# of dimension zero or one. Invalid results fail rather than becoming zero.
+domain_s2_area_overlay <- function(x,y,operation=c("intersection","difference")) {
+  operation <- match.arg(operation)
+  a <- s2::s2_union_agg(sf::st_as_s2(sf::st_geometry(x)))
+  b <- s2::s2_union_agg(sf::st_as_s2(sf::st_geometry(y)))
+  opts <- s2::s2_options(model="semi-open",dimensions="polygon",validate=TRUE)
+  z <- if(operation=="intersection") s2::s2_intersection(a,b,options=opts) else
+    s2::s2_difference(a,b,options=opts)
+  if(!isTRUE(all(s2::s2_is_valid(z)))) stop("Invalid S2 area overlay: ",operation)
+  area <- sum(s2::s2_area(z))
+  if(!is.finite(area) || area<0) stop("Nonfinite or negative S2 overlay area.")
+  area
+}
+
+domain_land_area_m2 <- function(domain,land) {
+  mask <- domain_land_mask(domain,land)
+  if(!length(mask)) return(0)
+  domain_s2_area_overlay(domain$geometry,mask,"intersection")
+}
+
 domain_environment <- function(domain, environment="all", land=NULL, custom_mask=NULL) {
   environment <- match.arg(environment,c("all","marine","terrestrial","custom"))
   if (environment=="all") return(domain)
@@ -62,7 +84,7 @@ domain_metrics <- function(domain,land) {
   sf::sf_use_s2(TRUE)
   g <- sf::st_union(domain$geometry)
   total <- domain_area_m2(g)/1e6
-  terrestrial <- domain_area_m2(domain_land_overlap(domain,land))/1e6
+  terrestrial <- domain_land_area_m2(domain,land)/1e6
   if (terrestrial > total+max(1e-6,total*1e-8)) stop("Land area exceeds domain area.")
   terrestrial <- min(total,terrestrial)
   marine <- max(0,total-terrestrial)
@@ -104,7 +126,7 @@ domain_buffer_audit <- function(domain,land,n_vertices=1500L,grid_n=35L,
     coords=c("lon","lat"),crs="OGC:CRS84")
   d <- as.numeric(sf::st_distance(pts,sf::st_combine(domain$reference)))
   clip <- do.call(domain_bbox,as.list(domain$requested_bbox))$geometry
-  outside <- domain_area_m2(domain_overlay_components(sf::st_difference(g,clip),"POLYGON"))/1e6
+  outside <- domain_s2_area_overlay(g,clip,"difference")/1e6
   on_land <- domain_area_m2(domain_land_overlap(domain,land))/1e6
   lo <- domain$min_distance_m
   hi <- domain$distance_m
@@ -123,10 +145,19 @@ domain_band_audit <- function(full,near,far,area_tolerance_km2=.01) {
   on.exit(sf::sf_use_s2(old),add=TRUE)
   sf::sf_use_s2(TRUE)
   a <- sf::st_union(full$geometry); b <- sf::st_union(near$geometry); c <- sf::st_union(far$geometry)
-  combined <- sf::st_union(base::c(b,c))
-  overlap <- domain_area_m2(domain_overlay_components(sf::st_intersection(b,c),"POLYGON"))/1e6
-  gap <- domain_area_m2(domain_overlay_components(sf::st_difference(a,combined),"POLYGON"))/1e6
-  outside <- domain_area_m2(domain_overlay_components(sf::st_difference(combined,a),"POLYGON"))/1e6
+  # Keep the combined band and all subsequent area overlays native to S2.
+  opts <- s2::s2_options(model="semi-open",dimensions="polygon",validate=TRUE)
+  aa <- sf::st_as_s2(a); bb <- sf::st_as_s2(b); cc <- sf::st_as_s2(c)
+  combined <- s2::s2_union(bb,cc,options=opts)
+  area_checked <- function(z) {
+    if(!isTRUE(all(s2::s2_is_valid(z)))) stop("Invalid S2 band audit geometry.")
+    v <- sum(s2::s2_area(z))/1e6
+    if(!is.finite(v)||v<0) stop("Invalid band audit area.")
+    v
+  }
+  overlap <- area_checked(s2::s2_intersection(bb,cc,options=opts))
+  gap <- area_checked(s2::s2_difference(aa,combined,options=opts))
+  outside <- area_checked(s2::s2_difference(combined,aa,options=opts))
   data.frame(overlap_km2=overlap,gap_km2=gap,outside_km2=outside,
     area_tolerance_km2=area_tolerance_km2,pass=max(overlap,gap,outside)<=area_tolerance_km2)
 }

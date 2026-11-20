@@ -30,3 +30,21 @@ testthat::test_that("marine and land-side masks are complementary on shared edge
   testthat::expect_lt(domain_area_m2(sf::st_difference(d$geometry,
     sf::st_union(base::c(m$geometry,t$geometry))))/1e6,.01)
 })
+
+testthat::test_that("native S2 area overlays distinguish boundary contact from overlap", {
+  a <- domain_bbox(0,0,1,1)$geometry
+  b <- domain_bbox(1,0,2,1)$geometry
+  testthat::expect_equal(domain_s2_area_overlay(a,b,"intersection"),0,tolerance=1e-8)
+  testthat::expect_equal(domain_s2_area_overlay(a,a,"difference"),0,tolerance=1e-8)
+  testthat::expect_equal(domain_s2_area_overlay(a,a,"intersection"),domain_area_m2(a),tolerance=1e-8)
+  land <- sf::st_sf(geometry=b)
+  testthat::expect_equal(domain_land_area_m2(domain_validate(a),land),0,tolerance=1e-8)
+  testthat::expect_equal(domain_metrics(domain_validate(a),land)$marine_pct,100)
+})
+testthat::test_that("native S2 band audit preserves exact partition", {
+  full <- domain_bbox(0,0,2,2)
+  near <- domain_bbox(0,0,1,2)
+  far <- domain_validate(domain_polygonal_overlay(sf::st_difference(full$geometry,near$geometry)))
+  audit <- domain_band_audit(full,near,far)
+  testthat::expect_true(audit$pass)
+})
