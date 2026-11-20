@@ -8,9 +8,12 @@ domain_validate <- function(x, repair = FALSE) {
   if (!length(g) || any(sf::st_is_empty(g))) stop("Empty geometry.")
   if (!all(as.character(sf::st_geometry_type(g)) %in% c("POLYGON", "MULTIPOLYGON")))
     stop("Only polygonal domains are supported.")
-  xy <- sf::st_coordinates(g)
-  if (any(!is.finite(xy[, 1:2])) || any(abs(xy[, 1]) > 180) ||
-      any(abs(xy[, 2]) > 90)) stop("Invalid geographic coordinates.")
+  # Check coordinates feature-wise: mixed POLYGON/MULTIPOLYGON sfc is valid input.
+  valid_xy <- vapply(g,function(feature) {
+    xy <- sf::st_coordinates(feature)
+    all(is.finite(xy[,1:2])) && all(abs(xy[,1])<=180) && all(abs(xy[,2])<=90)
+  },logical(1))
+  if (!all(valid_xy)) stop("Invalid geographic coordinates.")
   # Geographic predicates use spherical geometry, including dateline crossings.
   old <- sf::sf_use_s2()
   on.exit(sf::sf_use_s2(old), add = TRUE)

@@ -66,3 +66,7 @@ User reported 23 passing expectations, zero warnings and successful F01; F02 fai
 ## Session isolation
 
 The prior gallery assigned a domain to the global name c. Subsequent do.call(c, parts) failed because c resolved to a domain object. Use base::do.call(base::c, parts) and evaluate gallery data in a local environment. Added regression test with a deliberately masked c binding. Restart R after updating to remove stale session objects. New execution pending.
+
+## Heterogeneous overlay diagnostics
+
+27 synthetic expectations passed, but F02 failed in the continental case with an unidentified do.call error. The exact failing frame is not available. Explicitly traverse nested geometry collections, avoid implicit collection casting, normalize polygon outputs to MULTIPOLYGON and validate coordinates per feature. Run source("scripts/03_spatial_integration.R") to exercise real GSHHG without plotting; trace identifies the failing stage and call stack. New tests and real-data integration pending.

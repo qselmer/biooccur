@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — heterogeneous overlay diagnostics
+
+- User reported 27 passing expectations and successful F01; real continental F02 case still failed with do.call error (exact call unknown).
+- Extract nested geometry components explicitly; normalize polygon overlays to MULTIPOLYGON and validate coordinates per feature.
+- Add stage-specific tracing and standalone real-GSHHG integration script. Execution pending.
+
 ## 0.0.2-dev — session isolation fix
 
 - Qualify base::c in overlay concatenation to prevent global-object masking.
