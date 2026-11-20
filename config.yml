@@ -1,0 +1,33 @@
+# Illustrative configuration; not executable yet.
+project:
+  name: example
+sources: [obis, gbif]
+spatial:
+  type: polygon
+  crs: 4326
+  wkt: "POLYGON ((-93 -2, -91 -2, -88.5 -1, -89 2.2, -92 1, -93 -2))"
+temporal:
+  year_start: 1994
+  year_end: 2025
+taxonomy:
+  mode: all
+  names: []
+  rank: all
+acquisition:
+  execute: false
+  resume: true
+  batch: annual
+quality:
+  flag_duplicates: true
+  validate_coordinates: true
+  validate_taxonomy: true
+  exclude_absences: true
+  exclude_fossils: true
+assessment:
+  grid_resolution_degrees: 0.25
+  sampling_completeness: conditional
+output:
+  csv: true
+  parquet: true
+  geopackage: true
+  html: true
