@@ -18,3 +18,15 @@ testthat::test_that("offshore domain has zero land overlap", {
   testthat::expect_equal(domain_metrics(d,land)$marine_pct,100)
   testthat::expect_error(domain_environment(d,"terrestrial",land),"no polygonal area")
 })
+
+testthat::test_that("marine and land-side masks are complementary on shared edges", {
+  land <- sf::st_sf(geometry=domain_bbox(0,0,2,2)$geometry)
+  d <- domain_bbox(-1,.2,1,1.8)
+  m <- domain_environment(d,"marine",land)
+  t <- domain_environment(d,"terrestrial",land)
+  testthat::expect_true(all(sf::st_is_valid(m$geometry)))
+  testthat::expect_true(all(sf::st_is_valid(t$geometry)))
+  testthat::expect_lt(domain_area_m2(sf::st_intersection(m$geometry,t$geometry))/1e6,.01)
+  testthat::expect_lt(domain_area_m2(sf::st_difference(d$geometry,
+    sf::st_union(base::c(m$geometry,t$geometry))))/1e6,.01)
+})

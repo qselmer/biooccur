@@ -17,8 +17,28 @@ domain_overlay_components <- function(x, type) {
   out[!sf::st_is_empty(out)]
 }
 
-domain_polygonal_overlay <- function(x, stage="overlay") {
+# Validate polygonal overlay output before area or subsequent predicates.
+# Repair only invalid results, never silently discard an invalid area.
+domain_checked_polygons <- function(x, stage="overlay") {
   p <- domain_overlay_components(x,"POLYGON")
+  if (!length(p)) return(p)
+  old <- sf::sf_use_s2()
+  on.exit(sf::sf_use_s2(old),add=TRUE)
+  sf::sf_use_s2(TRUE)
+  valid <- s2::s2_is_valid(sf::st_as_s2(p,check=FALSE))
+  bad <- which(is.na(valid) | !valid)
+  if(length(bad)) {
+    message(stage,": repairing ",length(bad)," invalid overlay features")
+    fixed <- domain_prepare_land(p)
+    p <- sf::st_geometry(fixed)
+  }
+  if(!isTRUE(all(s2::s2_is_valid(sf::st_as_s2(p,check=FALSE)))))
+    stop(stage,": invalid polygon after topology correction.")
+  p
+}
+
+domain_polygonal_overlay <- function(x, stage="overlay") {
+  p <- domain_checked_polygons(x,stage)
   if (!length(p))
     stop(stage,": no polygonal area; returned types: ",
          paste(unique(as.character(sf::st_geometry_type(x))),collapse=", "))

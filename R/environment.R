@@ -2,17 +2,24 @@
 # GSHHG L1 separates ocean from land-side area, not freshwater from dry land.
 domain_area_m2 <- function(g) {
   if (!length(g) || all(sf::st_is_empty(g))) return(0)
-  sum(as.numeric(sf::st_area(g)))
+  p <- domain_checked_polygons(g,"Area diagnostic")
+  if (!length(p)) return(0)
+  sum(as.numeric(sf::st_area(p)))
 }
 
-domain_land_overlap <- function(domain, land) {
+domain_land_mask <- function(domain, land) {
   b <- domain_query_bbox(domain)
   candidates <- domain_land_candidates(land,b)
   if (!length(sf::st_geometry(candidates)))
     return(sf::st_sfc(crs="OGC:CRS84"))
   g <- sf::st_geometry(domain_prepare_land(candidates))
-  mask <- sf::st_union(g)
-  domain_overlay_components(sf::st_intersection(sf::st_union(domain$geometry),mask),"POLYGON")
+  sf::st_union(g)
+}
+
+domain_land_overlap <- function(domain,land) {
+  mask <- domain_land_mask(domain,land)
+  if (!length(mask)) return(mask)
+  domain_checked_polygons(sf::st_intersection(sf::st_union(domain$geometry),mask), "Land overlap")
 }
 
 domain_environment <- function(domain, environment="all", land=NULL, custom_mask=NULL) {
@@ -28,9 +35,16 @@ domain_environment <- function(domain, environment="all", land=NULL, custom_mask
     out <- sf::st_intersection(g,mask)
   } else {
     if (is.null(land)) land <- domain_land()
-    overlap <- domain_land_overlap(domain,land)
-    out <- if (environment=="terrestrial") overlap else
-      if (!length(overlap)) g else sf::st_difference(g,sf::st_union(overlap))
+    mask <- domain_land_mask(domain,land)
+    # Use the same original land mask for both complementary operations.
+    # Avoid subtracting a reconstructed intersection with shared boundaries.
+    out <- if (!length(mask)) {
+      if(environment=="marine") g else mask
+    } else if (environment=="terrestrial") {
+      sf::st_intersection(g,mask)
+    } else {
+      sf::st_difference(g,mask)
+    }
   }
   out <- domain_polygonal_overlay(out,paste("Environment",environment))
   result <- domain_validate(out,repair=TRUE)

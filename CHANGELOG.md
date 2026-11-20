@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — environment overlay topology
+
+- Use direct complementary intersection/difference against the original validated land mask.
+- Validate polygonal overlay results before area calculation, including diagnostic overlays.
+- Add shared-edge regression checks. User reported 34 passes and one masking failure; revised tests pending.
+
 ## 0.0.2-dev — final spatial refinement
 
 - User demonstrated all three GSHHG integration cases and F01/F02 outputs.
