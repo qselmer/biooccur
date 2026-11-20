@@ -1,3 +1,27 @@
+# Retain only positive-area polygonal components from overlay results.
+# Do not silently accept a line-only, point-only or empty domain.
+domain_polygonal_overlay <- function(x, stage = "overlay") {
+  g <- sf::st_geometry(x)
+  types <- as.character(sf::st_geometry_type(g))
+  parts <- list()
+  for (i in seq_along(g)) {
+    if (sf::st_is_empty(g[i])) next
+    if (types[i] %in% c("POLYGON","MULTIPOLYGON")) {
+      parts[[length(parts)+1L]] <- g[i]
+    } else if (types[i] == "GEOMETRYCOLLECTION") {
+      p <- sf::st_collection_extract(g[i],"POLYGON",warn=FALSE)
+      p <- p[!sf::st_is_empty(p)]
+      if (length(p)) parts[[length(parts)+1L]] <- p
+    }
+  }
+  if (!length(parts))
+    stop(stage,": no polygonal area; returned types: ",paste(unique(types),collapse=", "))
+  p <- do.call(c,parts)
+  p <- p[as.numeric(sf::st_area(p)) > 0]
+  if (!length(p)) stop(stage,": no positive-area polygonal components.")
+  p
+}
+
 # Coastal and island distance domains --------------------------------------
 # Buffer the true shoreline before clipping; do not buffer artificial bbox edges.
 domain_shore_buffer <- function(land, bbox, distance_m, min_distance_m = 0,
@@ -26,15 +50,30 @@ domain_shore_buffer <- function(land, bbox, distance_m, min_distance_m = 0,
   }
   all_land <- select_land(land)
   target <- if (is.null(reference_land)) all_land else select_land(reference_land)
-  # S2 polygon buffer minus land produces a marine distance band.
-  outer <- sf::st_buffer(target, distance_m, max_cells = max_cells)
-  inner <- if (min_distance_m > 0) sf::st_buffer(target,min_distance_m,max_cells=max_cells) else target
-  band <- sf::st_difference(sf::st_intersection(outer,clip), inner)
-  band <- sf::st_difference(band, all_land)
-  if (any(as.character(sf::st_geometry_type(band)) == "GEOMETRYCOLLECTION"))
-    band <- sf::st_collection_extract(band, "POLYGON", warn = FALSE)
+  # Extract actual shoreline BEFORE clipping to avoid artificial coastlines.
+  # Restrict line to expanded search window; no buffer of entire continents.
+  shoreline <- sf::st_boundary(target)
+  regional <- sf::st_intersection(shoreline, search)
+  line_types <- as.character(sf::st_geometry_type(regional))
+  lines <- regional[line_types %in% c("LINESTRING","MULTILINESTRING")]
+  collections <- regional[line_types == "GEOMETRYCOLLECTION"]
+  if (length(collections)) {
+    extra <- sf::st_collection_extract(collections,"LINESTRING",warn=FALSE)
+    lines <- c(lines,extra)
+  }
+  lines <- lines[!sf::st_is_empty(lines)]
+  if (!length(lines)) stop("No shoreline lines in expanded search window.")
+  cells <- max(20000L,max_cells)
+  outer <- sf::st_union(sf::st_buffer(lines, distance_m, max_cells = cells))
+  band <- domain_polygonal_overlay(sf::st_intersection(outer,clip),"Outer buffer clipping")
+  if (min_distance_m > 0) {
+    inner <- sf::st_union(sf::st_buffer(lines,min_distance_m,max_cells=cells))
+    band <- domain_polygonal_overlay(sf::st_difference(band,inner),"Inner distance exclusion")
+  }
+  band <- domain_polygonal_overlay(sf::st_difference(band,all_land),"Marine land exclusion")
+  message("Marine band: ",paste(as.character(sf::st_geometry_type(band)),collapse=", "))
   result <- domain_validate(band, repair = TRUE)
-  result$reference <- sf::st_boundary(target)
+  result$reference <- lines
   result$distance_m <- distance_m
   result$min_distance_m <- min_distance_m
   result

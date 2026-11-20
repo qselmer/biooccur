@@ -15,6 +15,8 @@ Coastal selection also supports a geographic bounding window, minimum/maximum sh
 
 Default shoreline reference is GSHHG v2.3.7 full resolution (f), level L1, cached locally with provenance. Lower resolutions are explicit choices only; local high-resolution alternatives remain supported. Display cropping must not alter analytical coastline geometry. Preselect regional shoreline candidates before S2 topology validation; validate and repair invalid candidate topology before predicates; retain original source files, report repaired features, and fail explicitly if repair cannot produce valid polygons.
 
+Regional marine buffers use actual shoreline lines extracted before clipping; retain only positive-area polygonal overlay components, fail on empty domains, and document S2 buffer approximation.
+
 ## 4. Discovery
 Prioritize OBIS and GBIF; iNaturalist and ALA follow connector validation. Extensible adapters with declared capabilities and limits. Preliminary counts include possible duplicates. Four taxonomic modes: unrestricted exploration (default), single taxon, multiple taxa, data-driven selection. Navigate kingdom through species. No mandatory marine filter. Data-driven selection uses configurable counts, independent locations, years and sampling metadata; no universal threshold.
 

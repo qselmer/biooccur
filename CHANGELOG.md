@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — regional shoreline-line buffers
+
+- Buffer actual regional shoreline lines rather than entire land polygons.
+- Normalize mixed overlay results to positive-area polygonal components; provide stage-specific errors.
+- Add mixed-geometry and inland-window tests. Prior revision: 23 passing expectations and F01 successful; F02 continental buffer failed. New execution pending.
+
 ## 0.0.2-dev — regional shoreline preparation
 
 - Avoid global S2 validation during loading; preselect regional candidates before predicates.

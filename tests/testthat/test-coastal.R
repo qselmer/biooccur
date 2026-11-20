@@ -29,3 +29,18 @@ testthat::test_that("unrelated invalid land does not block regional predicates",
   testthat::expect_true(domain_contains(d,-.1,1))
   testthat::expect_equal(length(domain_pick_land(land,1,1)),1L)
 })
+
+testthat::test_that("mixed overlay outputs preserve only polygonal area", {
+  p <- sf::st_polygon(list(rbind(c(0,0),c(2,0),c(2,2),c(0,0))))
+  l <- sf::st_linestring(rbind(c(3,3),c(4,4)))
+  pt <- sf::st_point(c(5,5))
+  x <- sf::st_sfc(p,l,pt,sf::st_geometrycollection(list(p,l)),crs="OGC:CRS84")
+  out <- domain_polygonal_overlay(x)
+  testthat::expect_true(all(as.character(sf::st_geometry_type(out)) %in% c("POLYGON","MULTIPOLYGON")))
+  testthat::expect_equal(length(out),2L)
+  testthat::expect_error(domain_polygonal_overlay(x[2:3]),"no polygonal area")
+})
+testthat::test_that("a coastal window without shoreline fails explicitly", {
+  land <- sf::st_sf(geometry=domain_bbox(0,0,10,10)$geometry)
+  testthat::expect_error(domain_shore_buffer(land,c(4,4,5,5),10000),"No shoreline lines")
+})
