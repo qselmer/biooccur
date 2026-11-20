@@ -1,0 +1,22 @@
+# Quantitative checks using real GSHHG; report diagnostics, not automatic certification.
+source("R/main.R")
+local({
+  land <- domain_land()
+  bbox <- c(-82,-11,-77,-5)
+  full <- domain_shore_buffer(land,bbox,111120)
+  near <- domain_shore_buffer(land,bbox,37040)
+  far <- domain_shore_buffer(land,bbox,111120,37040)
+  island <- domain_island_buffer(land,domain_pick_land(land,-90.35,-.65),
+    c(-91.4,-1.5,-89.3,.3),55560)
+  cases <- list(continental=full,near_coast=near,distance_band=far,insular=island)
+  tab <- base::do.call(base::rbind,lapply(names(cases),function(n)
+    cbind(case=n,domain_buffer_audit(cases[[n]],land))))
+  bands <- domain_band_audit(full,near,far)
+  dir.create("cout/spatial",recursive=TRUE,showWarnings=FALSE)
+  utils::write.csv(tab,"cout/spatial/spatial_distance_audit.csv",row.names=FALSE)
+  utils::write.csv(bands,"cout/spatial/spatial_band_audit.csv",row.names=FALSE)
+  print(tab)
+  print(bands)
+  if(!all(tab$distance_pass & tab$land_pass & tab$bbox_pass) || !bands$pass)
+    message("Spatial tolerances not met. Review audit before certification.")
+})

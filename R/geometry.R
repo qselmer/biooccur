@@ -168,7 +168,7 @@ domain_plot <- function(domain, title = "F01 | Study area") {
     ggplot2::geom_sf(fill = "#B8DCE5", color = "#176B87", linewidth = 0.5) +
     ggplot2::coord_sf(expand = TRUE) +
     ggplot2::labs(title = title, x = "Longitude", y = "Latitude") +
-    ggplot2::theme_minimal(base_size = 12)
+    ggplot2::theme_minimal(base_size = 16)
 }
 
 domain_export <- function(domain, path, overwrite = FALSE) {

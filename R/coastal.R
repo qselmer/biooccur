@@ -85,6 +85,8 @@ domain_shore_buffer <- function(land, bbox, distance_m, min_distance_m = 0,
   message("Marine band: ",paste(as.character(sf::st_geometry_type(band)),collapse=", "))
   result <- domain_spatial_step("final polygon validation",domain_validate(band, repair = TRUE))
   result$reference <- lines
+  result$environment <- "marine"
+  result$requested_bbox <- bbox
   result$distance_m <- distance_m
   result$min_distance_m <- min_distance_m
   result

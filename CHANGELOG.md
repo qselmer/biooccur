@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.2-dev — final spatial refinement
+
+- User demonstrated all three GSHHG integration cases and F01/F02 outputs.
+- Add environment masks, quantitative spatial metrics and sampled distance/area audits.
+- PNG-only 600 dpi maps with base font 16, scale bars, balanced extents and individual F02 panels.
+- New verification pending.
+
 ## 0.0.2-dev — integration test fixture correction
 
 - Replace unsupported nested collection constructor in unit test with valid mixed polygon/point collection.

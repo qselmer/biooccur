@@ -23,15 +23,26 @@ local({
    "G | Internal exclusions"=domain_with_holes,"H | Imported WKT"=domain_wkt,"I | Island buffer: 0–30 nmi"=domain_insular,
    "J | Coastal band: 20–60 nmi"=domain_distance_band)
   message("F02: rendering reference maps")
-  plots <- lapply(names(domains),function(n) domain_plot(domains[[n]],n,land=land,
-   reference=domains[[n]]$reference,source_label=attr(land,"biooccur_source")))
-  fig <- patchwork::wrap_plots(plots,ncol=2)
-  fig <- fig + patchwork::plot_annotation(title="F02 | Spatial domain selection",
-   subtitle="Illustrative domains using real geographic context")
   dir.create("cout/spatial",recursive=TRUE,showWarnings=FALSE)
-  ggplot2::ggsave("cout/spatial/F02_geometry_gallery.png",fig,width=12,height=19,dpi=600,bg="white")
-  ggplot2::ggsave("cout/spatial/F02_geometry_gallery.pdf",fig,width=12,height=19,bg="white")
-  tab <- do.call(rbind,lapply(names(domains),function(n) cbind(mode=n,domain_summary(domains[[n]]))))
+  common_island <- c(-93,-2.1,-88.5,2.2)
+  common_coast <- c(-83,-11,-76.5,-5)
+  plots <- lapply(seq_along(domains),function(i) {
+    n <- names(domains)[i]
+    extent <- if(i %in% c(1,2,6,7,8)) common_island else
+      if(i %in% c(4,10)) common_coast else NULL
+    single <- domain_plot(domains[[i]],n,land=land,reference=domains[[i]]$reference,
+      extent=extent,source_label=attr(land,"biooccur_source"))
+    ggplot2::ggsave(file.path("cout/spatial",sprintf("F02_%s.png",LETTERS[i])),
+      single,width=9,height=8,dpi=600,bg="white")
+    single + ggplot2::labs(caption=NULL) + ggplot2::theme(legend.position="none")
+  })
+  fig <- patchwork::wrap_plots(plots,ncol=2) +
+    patchwork::plot_annotation(title="F02 | Spatial domain selection",
+      subtitle="Illustrative domains using real geographic context",
+      caption=paste(attr(land,"biooccur_source"),"| Cyan: study domain | Beige: land | Brown: reference shoreline"),
+      theme=ggplot2::theme_minimal(base_size=16))
+  ggplot2::ggsave("cout/spatial/F02_geometry_gallery.png",fig,width=16,height=28,dpi=600,bg="white")
+  tab <- base::do.call(base::rbind,lapply(names(domains),function(n)
+    cbind(mode=n,domain_metrics(domains[[n]],land))))
   utils::write.csv(tab,"cout/spatial/F02_geometry_summary.csv",row.names=FALSE)
-
 })

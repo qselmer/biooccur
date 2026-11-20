@@ -85,7 +85,7 @@ domain_land <- function(path = NULL, resolution = "f",
 
 domain_plot <- function(domain, title = "F01 | Study area", land = NULL,
                         reference = NULL, subtitle = NULL, extent = NULL,
-                        source_label = NULL) {
+                        source_label = NULL, show_caption = TRUE, show_legend = TRUE) {
   if (is.null(land)) {
     land <- domain_land()
     source_label <- attr(land,"biooccur_source")
@@ -97,6 +97,15 @@ domain_plot <- function(domain, title = "F01 | Study area", land = NULL,
   dy <- max(diff(b[c(2,4)]) * .12, .03)
   xl <- pmax(-180,pmin(180,b[c(1,3)] + c(-dx,dx)))
   yl <- pmax(-90,pmin(90,b[c(2,4)] + c(-dy,dy)))
+  # Use a balanced map frame without distorting geographic aspect.
+  midlat <- mean(yl)
+  ratio <- max(.2,cos(midlat*pi/180))
+  xspan <- diff(xl); yspan <- diff(yl)
+  target <- .85
+  if (xspan*ratio < target*yspan) {
+    half <- target*yspan/(2*ratio)
+    xl <- pmax(-180,pmin(180,mean(xl)+c(-half,half)))
+  }
   # Crop for display only, never for shoreline calculations.
   old <- sf::sf_use_s2()
   on.exit(sf::sf_use_s2(old), add = TRUE)
@@ -113,25 +122,32 @@ domain_plot <- function(domain, title = "F01 | Study area", land = NULL,
     land <- suppressWarnings(sf::st_crop(land,xmin=xl[1],xmax=xl[2],ymin=yl[1],ymax=yl[2]))
   }
   p <- ggplot2::ggplot() +
-    ggplot2::geom_sf(data = land, fill = "#E3E2D6", color = "#777E78", linewidth = .23) +
+    ggplot2::geom_sf(data = land, ggplot2::aes(fill="Land"), color = "#777E78", linewidth = .30) +
     ggplot2::geom_sf(data = sf::st_sf(geometry = domain$geometry),
-      fill = "#28A5C4", alpha = .28, color = NA) +
+      ggplot2::aes(fill="Study domain"), alpha = .36, color = NA) +
     ggplot2::geom_sf(data = sf::st_sf(geometry = domain$geometry),
-      fill = NA, color = "#075D77", linewidth = .65)
+      fill = NA, color = "#075D77", linewidth = .85)
   if (!is.null(reference)) p <- p + ggplot2::geom_sf(data = sf::st_sf(geometry = sf::st_geometry(reference)),
     color = "#A34B25", fill = NA, linewidth = .55)
   p + ggplot2::coord_sf(crs = sf::st_crs("OGC:CRS84"), xlim = xl, ylim = yl, expand = FALSE) +
     ggplot2::labs(title = title, subtitle = subtitle, x = "Longitude", y = "Latitude",
-      caption = source_label) +
-    ggplot2::theme_minimal(base_size = 11) +
+      caption = if(show_caption) source_label else NULL, fill=NULL) +
+    ggplot2::scale_fill_manual(values=c("Land"="#E3E2D6","Study domain"="#28A5C4"),
+      breaks=c("Land","Study domain"),drop=FALSE) +
+    ggplot2::scale_x_continuous(breaks=scales::breaks_pretty(n=4)) +
+    ggplot2::scale_y_continuous(breaks=scales::breaks_pretty(n=4)) +
+    ggspatial::annotation_scale(location="bl",width_hint=.22,text_cex=.85) +
+    ggplot2::theme_minimal(base_size = 16) +
     ggplot2::theme(panel.background = ggplot2::element_rect(fill = "#E8F3F8", color = NA),
       panel.grid.major = ggplot2::element_line(color = "#BBCED7", linewidth = .25),
       panel.grid.minor = ggplot2::element_blank(),
       panel.border = ggplot2::element_rect(fill = NA, color = "#82969E", linewidth = .35),
-      plot.title = ggplot2::element_text(face = "bold", size = 12),
-      plot.subtitle = ggplot2::element_text(size = 9),
-      plot.caption = ggplot2::element_text(size = 7, color = "#52636C"),
-      axis.text = ggplot2::element_text(size = 8),
-      axis.title = ggplot2::element_text(size = 9),
+      plot.title = ggplot2::element_text(face = "bold", size = 18),
+      plot.subtitle = ggplot2::element_text(size = 15),
+      plot.caption = ggplot2::element_text(size = 12, color = "#52636C"),
+      axis.text = ggplot2::element_text(size = 13),
+      axis.title = ggplot2::element_text(size = 15),
+      legend.position = if(show_legend) "bottom" else "none",
+      legend.text = ggplot2::element_text(size=13),
       plot.margin = ggplot2::margin(8,10,8,10))
 }

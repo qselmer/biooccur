@@ -1,0 +1,20 @@
+testthat::test_that("environment masks preserve area partition", {
+  land <- sf::st_sf(geometry=domain_bbox(0,0,2,2)$geometry)
+  d <- domain_bbox(-1,.2,1,1.8)
+  m <- domain_environment(d,"marine",land)
+  t <- domain_environment(d,"terrestrial",land)
+  testthat::expect_equal(domain_contains(m,c(-.5,.5),c(1,1)),c(TRUE,FALSE))
+  testthat::expect_equal(domain_contains(t,c(-.5,.5),c(1,1)),c(FALSE,TRUE))
+  testthat::expect_equal(domain_summary(m)$area_km2+domain_summary(t)$area_km2,
+    domain_summary(d)$area_km2,tolerance=1e-6)
+  s <- domain_metrics(d,land)
+  testthat::expect_equal(s$marine_pct+s$land_side_pct,100)
+  testthat::expect_true(s$geometry_valid)
+  testthat::expect_error(domain_environment(d,"custom"),"requires")
+})
+testthat::test_that("offshore domain has zero land overlap", {
+  land <- sf::st_sf(geometry=domain_bbox(0,0,2,2)$geometry)
+  d <- domain_bbox(10,10,11,11)
+  testthat::expect_equal(domain_metrics(d,land)$marine_pct,100)
+  testthat::expect_error(domain_environment(d,"terrestrial",land),"no polygonal area")
+})

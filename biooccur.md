@@ -17,6 +17,8 @@ Default shoreline reference is GSHHG v2.3.7 full resolution (f), level L1, cache
 
 Regional marine buffers use actual shoreline lines extracted before clipping; retain only positive-area polygonal overlay components, fail on empty domains, and document S2 buffer approximation.
 
+Environment selector: all, marine, terrestrial (land-side including inland waters under GSHHG L1), custom polygon mask. Report area partition, perimeter, components, holes, centroid, geographic bounds and requested distance limits. Quantitative shoreline audit samples vertices/interior points and measures geographic/land overlap and band closure; tolerances are provisional and require evaluation.
+
 ## 4. Discovery
 Prioritize OBIS and GBIF; iNaturalist and ALA follow connector validation. Extensible adapters with declared capabilities and limits. Preliminary counts include possible duplicates. Four taxonomic modes: unrestricted exploration (default), single taxon, multiple taxa, data-driven selection. Navigate kingdom through species. No mandatory marine filter. Data-driven selection uses configurable counts, independent locations, years and sampling metadata; no universal threshold.
 
@@ -33,7 +35,7 @@ Report magnitude, spatial/temporal coverage, taxonomy, event availability, quali
 Ten Shiny sections: Project Overview; Spatial Domain; Data Sources; Taxonomic Discovery; Data Acquisition; Taxonomic Validation; Data Quality and Validation; Biodiversity and Data Availability; Multidimensional Data Assessment; Export and Reproducibility. Use bslib, leaflet, DT, plotly as appropriate. Nonblocking acquisitions, persistent configuration, honest empty/error/partial states. Quarto HTML mirrors applicable diagnostics with parameter snapshots, citations and limitations. Shared backend prevents divergent results.
 
 ## 9. Mandatory visualization inventory
-Stable IDs, associated quantitative tables (or geometry/manifest for F01/F02/F07), documented inputs, units, filters and availability. Interactive views plus publication-quality ggplot2 exports where appropriate: PNG 600 dpi, SVG/PDF. Italic scientific names, accessible palettes, clear labels and no clipping. Never fabricate missing values.
+Stable IDs, associated quantitative tables (or geometry/manifest for F01/F02/F07), documented inputs, units, filters and availability. Interactive views plus publication-quality ggplot2 figure exports: PNG only, 600 dpi; theme_minimal(base_size = 16) minimum. No PDF/SVG figure exports. Italic scientific names, accessible palettes, clear labels and no clipping. Never fabricate missing values.
 
 | ID | Figure | Phase |
 |---|---|---|
@@ -75,4 +77,4 @@ Raw, standardized, validated and flagged records; exclusion reasons, provenance,
 testthat unit/integration tests with explicitly synthetic fixtures; opt-in live API tests. Test invalid geometries, holes, multipolygons, antimeridian, empty responses, interrupted/resumed acquisition, duplicate candidates, missing fields and provenance retention. Compare source counts and document discrepancies. Resolve actual dependencies before creating renv lockfile. Roadmap: 0.0.1 foundation; 0.0.2 spatial; 0.0.3 discovery; 0.0.4 acquisition; 0.0.5 validation; 0.0.6 assessment/figures; 0.0.7 Quarto; 0.1.0 integrated Shiny. Software paper requires empirical validation and comparisons with existing tools; novelty is not assumed.
 
 ## 12. Status
-User reported 12 passing spatial tests and successful F01/F02 generation on the prior revision. Cartographic context, marine distance bands and island selection added; new tests and figures require local execution. No live connectors or Shiny application yet. See [spatial engine documentation](docs/spatial-engine.md).
+User supplied successful real GSHHG continental, insular and distance-band integrations and F01/F02 figures. Final spatial refinement adds environment masking, quantitative diagnostics and PNG-only cartography. New tests and distance audit pending. No live occurrence connectors yet.
