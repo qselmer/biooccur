@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — GSHHG reference
+
+- Replace default Natural Earth land with GSHHG v2.3.7 full-resolution L1.
+- Add local acquisition script and provenance manifest; no silent fallback.
+- Crop cartographic layers for display only. Local execution pending.
+
 ## 0.0.2-dev — cartography refinement
 
 - Add real land/ocean context for F01 and F02.

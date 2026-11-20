@@ -7,8 +7,8 @@ dir.create("cout/spatial", recursive = TRUE, showWarnings = FALSE)
 domain_export(domain, "cout/spatial/domain.geojson", overwrite = TRUE)
 utils::write.csv(domain_summary(domain), "cout/spatial/domain_summary.csv", row.names = FALSE)
 utils::write.csv(as.data.frame(as.list(domain_query_bbox(domain))), "cout/spatial/query_bbox.csv", row.names = FALSE)
-land <- domain_land(config$spatial$land_file)
-label <- if (is.null(config$spatial$land_file)) "Land: Natural Earth 1:10m" else "Land: supplied reference layer"
+land <- domain_land(config$spatial$land_file, if (is.null(config$spatial$land_resolution)) "f" else config$spatial$land_resolution)
+label <- attr(land,"biooccur_source")
 p <- domain_plot(domain, land=land, reference=domain$reference, source_label=label,
  subtitle=sprintf("Domain area: %s km²", format(round(domain_summary(domain)$area_km2),big.mark=",")))
 ggplot2::ggsave("cout/spatial/F01_study_area.png", p, width=9,height=7,dpi=600,bg="white")

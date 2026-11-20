@@ -17,7 +17,7 @@ domains <- list("A | Bounding box"=a,"B | Irregular polygon"=b,"C | Multipolygon
  "G | Internal exclusions"=g,"H | Imported WKT"=h,"I | Island buffer: 0–30 nmi"=i,
  "J | Coastal band: 20–60 nmi"=j)
 plots <- lapply(names(domains),function(n) domain_plot(domains[[n]],n,land=land,
- reference=domains[[n]]$reference,source_label="Land: Natural Earth 1:10m"))
+ reference=domains[[n]]$reference,source_label=attr(land,"biooccur_source")))
 fig <- patchwork::wrap_plots(plots,ncol=2)
 fig <- fig + patchwork::plot_annotation(title="F02 | Spatial domain selection",
  subtitle="Illustrative domains using real geographic context")

@@ -1,9 +1,23 @@
 # Cartographic reference ---------------------------------------------------
-# Natural Earth 1:10m land polygons; display and exploratory shoreline only.
-domain_land <- function(path = NULL) {
-  x <- if (is.null(path)) rnaturalearth::ne_download(scale = 10, type = "land",
-    category = "physical", returnclass = "sf") else sf::st_read(path, quiet = TRUE)
-  sf::st_transform(x, "OGC:CRS84")
+# GSHHG 2.3.7, full resolution, level 1 (land/ocean).
+domain_land <- function(path = NULL, resolution = "f",
+                        cache_dir = "raw/reference/gshhg/2.3.7") {
+  if (!resolution %in% c("f","h","i","l","c")) stop("Invalid GSHHG resolution.")
+  if (is.null(path)) {
+    folder <- file.path(cache_dir,resolution)
+    stem <- paste0("GSHHS_",resolution,"_L1")
+    path <- file.path(folder,paste0(stem,".shp"))
+    parts <- file.path(folder,paste0(stem,c(".shp",".shx",".dbf",".prj")))
+    if (!all(file.exists(parts) & file.info(parts)$size > 0)) {
+      stop("GSHHG reference is missing. Run scripts/00_gshhg_reference.R first.")
+    }
+    label <- paste0("Land: GSHHG v2.3.7 | ",resolution," | L1")
+  } else label <- "Land: supplied reference layer"
+  x <- sf::st_read(path, quiet = TRUE)
+  if (is.na(sf::st_crs(x))) stop("Land reference must have a known CRS.")
+  x <- sf::st_transform(x,"OGC:CRS84")
+  attr(x,"biooccur_source") <- label
+  x
 }
 
 domain_plot <- function(domain, title = "F01 | Study area", land = NULL,
@@ -11,14 +25,20 @@ domain_plot <- function(domain, title = "F01 | Study area", land = NULL,
                         source_label = NULL) {
   if (is.null(land)) {
     land <- domain_land()
-    source_label <- "Land: Natural Earth 1:10m"
+    source_label <- attr(land,"biooccur_source")
   }
+  if (is.null(source_label)) source_label <- attr(land,"biooccur_source")
   if (is.null(source_label)) source_label <- "Land: supplied reference layer"
   b <- if (is.null(extent)) domain_query_bbox(domain) else setNames(as.numeric(extent), c("xmin","ymin","xmax","ymax"))
   dx <- max(diff(b[c(1,3)]) * .12, .03)
   dy <- max(diff(b[c(2,4)]) * .12, .03)
   xl <- pmax(-180,pmin(180,b[c(1,3)] + c(-dx,dx)))
   yl <- pmax(-90,pmin(90,b[c(2,4)] + c(-dy,dy)))
+  # Crop for display only, never for shoreline calculations.
+  old <- sf::sf_use_s2()
+  on.exit(sf::sf_use_s2(old), add = TRUE)
+  sf::sf_use_s2(FALSE)
+  land <- suppressWarnings(sf::st_crop(land, xmin=xl[1], xmax=xl[2], ymin=yl[1], ymax=yl[2]))
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = land, fill = "#E3E2D6", color = "#777E78", linewidth = .23) +
     ggplot2::geom_sf(data = sf::st_sf(geometry = domain$geometry),

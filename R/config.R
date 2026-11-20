@@ -11,10 +11,10 @@ domain_from_config <- function(config) {
     exclusion = domain_exclusion(do.call(rbind, s$vertices), lapply(s$holes, function(p) do.call(rbind, p))),
     file = domain_import(path = s$file, crs = s$crs, layer = s$layer),
     region = domain_region(sf::st_read(s$file, quiet = TRUE), s$id_column, unlist(s$ids)),
-    shore_buffer = domain_shore_buffer(domain_land(s$land_file), unlist(s$bbox),
+    shore_buffer = domain_shore_buffer(domain_land(s$land_file, if (is.null(s$land_resolution)) "f" else s$land_resolution), unlist(s$bbox),
       s$distance_m, if (is.null(s$min_distance_m)) 0 else s$min_distance_m),
     island_buffer = {
-      land <- domain_land(s$land_file)
+      land <- domain_land(s$land_file, if (is.null(s$land_resolution)) "f" else s$land_resolution)
       island <- if (!is.null(s$island_file)) sf::st_read(s$island_file,quiet=TRUE) else
         domain_pick_land(land,s$island_lon,s$island_lat)
       domain_island_buffer(land,island,unlist(s$bbox),s$distance_m,

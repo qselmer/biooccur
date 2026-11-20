@@ -13,6 +13,8 @@ Eight required selection modes: bounding box, irregular polygon, multipolygon, c
 
 Coastal selection also supports a geographic bounding window, minimum/maximum shoreline distances, marine-only bands and selected island or mainland reference polygons. Cartographic figures show geographic land/ocean context with source attribution; generalized reference coastlines are not certified for precise operational distances.
 
+Default shoreline reference is GSHHG v2.3.7 full resolution (f), level L1, cached locally with provenance. Lower resolutions are explicit choices only; local high-resolution alternatives remain supported. Display cropping must not alter analytical coastline geometry.
+
 ## 4. Discovery
 Prioritize OBIS and GBIF; iNaturalist and ALA follow connector validation. Extensible adapters with declared capabilities and limits. Preliminary counts include possible duplicates. Four taxonomic modes: unrestricted exploration (default), single taxon, multiple taxa, data-driven selection. Navigate kingdom through species. No mandatory marine filter. Data-driven selection uses configurable counts, independent locations, years and sampling metadata; no universal threshold.
 

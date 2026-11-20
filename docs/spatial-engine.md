@@ -44,3 +44,9 @@ spatial:
 ```
 
 The latter is an illustrative Santa Cruz selection; if the generalized shoreline does not contain the supplied point, provide an island polygon file instead. Bounds are geographic geodesic polygons, not certified constant-latitude edges. Large/dateline cartography, offline basemap caching and interactive drawing remain pending.
+
+## GSHHG reference update
+
+The default is now GSHHG 2.3.7 full resolution (f), L1 land/ocean polygons. This supersedes Natural Earth and the prior rnaturalearth dependency. Run Rscript scripts/00_gshhg_reference.R once before F01/F02 or marine buffers. The NOAA archive directory is documented by downstream users but download connectivity and individual file availability have not been verified here. Alternatively obtain the matching shapefile components from the official GSHHG distribution (https://www.soest.hawaii.edu/wessel/gshhg/) and place them under raw/reference/gshhg/2.3.7/f, or supply spatial.land_file. No silent low-resolution fallback. Optional spatial.land_resolution selects f/h/i/l/c; acquire that resolution first. Local data are ignored by Git. Manifest records sizes, MD5 fingerprints and source URLs; these are local fingerprints, not publisher checksum verification. L1 is marine shoreline, not an inland water mask. Full resolution increases processing cost and is not a guarantee of positional accuracy. Display cropping is separate from analytical geometry. New code is unexecuted.
+
+Reference: Wessel & Smith (1996), doi:10.1029/96JB00104.

@@ -3,6 +3,7 @@ project:
   name: example
 sources: [obis, gbif]
 spatial:
+  land_resolution: f
   type: polygon
   crs: 4326
   wkt: "POLYGON ((-93 -2, -91 -2, -88.5 -1, -89 2.2, -92 1, -93 -2))"
