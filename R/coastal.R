@@ -14,10 +14,10 @@ domain_shore_buffer <- function(land, bbox, distance_m, min_distance_m = 0,
   # Select whole land features intersecting an expanded search region.
   search <- sf::st_buffer(clip, distance_m * 1.1, max_cells = max_cells)
   select_land <- function(x) {
-    x <- sf::st_transform(sf::st_geometry(x), "OGC:CRS84")
+    x <- sf::st_geometry(domain_prepare_land(x))
     x <- x[lengths(sf::st_intersects(x, search)) > 0L]
     if (!length(x)) stop("No shoreline reference intersects the search region.")
-    sf::st_union(sf::st_make_valid(x))
+    sf::st_union(x)
   }
   all_land <- select_land(land)
   target <- if (is.null(reference_land)) all_land else select_land(reference_land)
@@ -46,7 +46,7 @@ domain_pick_land <- function(land, lon, lat) {
   old <- sf::sf_use_s2()
   on.exit(sf::sf_use_s2(old),add=TRUE)
   sf::sf_use_s2(TRUE)
-  parts <- sf::st_cast(sf::st_geometry(sf::st_transform(land,"OGC:CRS84")), "POLYGON")
+  parts <- sf::st_cast(sf::st_geometry(domain_prepare_land(land)), "POLYGON")
   p <- sf::st_sfc(sf::st_point(c(lon,lat)),crs="OGC:CRS84")
   hit <- sf::st_intersects(p,parts,model="closed")[[1]]
   if (length(hit)!=1L) stop("Selection point must identify exactly one land polygon.")

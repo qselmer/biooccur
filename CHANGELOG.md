@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — shoreline topology fix
+
+- Validate and repair S2-invalid shoreline features before spatial predicates, retaining full resolution and original source files.
+- Validate a separate planar display copy before cropping; add regression test and gallery stage messages.
+- User reported duplicate vertex error with GSHHG; new revision execution pending.
+
 ## 0.0.2-dev — GSHHG reference
 
 - Replace default Natural Earth land with GSHHG v2.3.7 full-resolution L1.

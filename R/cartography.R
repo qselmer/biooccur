@@ -1,4 +1,38 @@
 # Cartographic reference ---------------------------------------------------
+# Validate spherical topology before any S2 spatial predicate.
+# Keep original shoreline files immutable; repair only invalid features.
+domain_prepare_land <- function(x) {
+  if (!inherits(x,c("sf","sfc")) || is.na(sf::st_crs(x)))
+    stop("Land reference must have a known CRS.")
+  x <- sf::st_transform(x,"OGC:CRS84")
+  g <- sf::st_geometry(x)
+  if (!length(g) || any(sf::st_is_empty(g)) ||
+      !all(as.character(sf::st_geometry_type(g)) %in% c("POLYGON","MULTIPOLYGON")))
+    stop("Land reference must contain nonempty polygonal features.")
+  old <- sf::sf_use_s2()
+  on.exit(sf::sf_use_s2(old),add=TRUE)
+  sf::sf_use_s2(TRUE)
+  # Unchecked conversion is used exclusively for diagnosis, never predicates.
+  raw <- sf::st_as_s2(g,check=FALSE)
+  valid <- s2::s2_is_valid(raw)
+  bad <- which(is.na(valid) | !valid)
+  if (length(bad)) {
+    message("Repairing ",length(bad)," invalid shoreline features (S2 topology).")
+    fixed <- sf::st_make_valid(g[bad],s2_options=s2::s2_options(
+      snap=s2::s2_snap_precision(1e7)))
+    if (any(sf::st_is_empty(fixed)) ||
+        !all(as.character(sf::st_geometry_type(fixed)) %in% c("POLYGON","MULTIPOLYGON")))
+      stop("Shoreline repair changed polygon type or produced empty features.")
+    g[bad] <- fixed
+  }
+  checked <- s2::s2_is_valid(sf::st_as_s2(g,check=FALSE))
+  if (anyNA(checked) || !all(checked))
+    stop("Shoreline remains invalid after S2 topology repair. No features dropped.")
+  if (inherits(x,"sf")) sf::st_geometry(x) <- g else x <- g
+  attr(x,"biooccur_repaired_features") <- bad
+  x
+}
+
 # GSHHG 2.3.7, full resolution, level 1 (land/ocean).
 domain_land <- function(path = NULL, resolution = "f",
                         cache_dir = "raw/reference/gshhg/2.3.7") {
@@ -15,7 +49,7 @@ domain_land <- function(path = NULL, resolution = "f",
   } else label <- "Land: supplied reference layer"
   x <- sf::st_read(path, quiet = TRUE)
   if (is.na(sf::st_crs(x))) stop("Land reference must have a known CRS.")
-  x <- sf::st_transform(x,"OGC:CRS84")
+  x <- domain_prepare_land(x)
   attr(x,"biooccur_source") <- label
   x
 }
@@ -38,7 +72,17 @@ domain_plot <- function(domain, title = "F01 | Study area", land = NULL,
   old <- sf::sf_use_s2()
   on.exit(sf::sf_use_s2(old), add = TRUE)
   sf::sf_use_s2(FALSE)
-  land <- suppressWarnings(sf::st_crop(land, xmin=xl[1], xmax=xl[2], ymin=yl[1], ymax=yl[2]))
+  # GEOS cropping requires planar topology; repair only a display copy.
+  # First select candidate features by numeric envelopes (no spatial predicates).
+  keep <- vapply(sf::st_geometry(land),function(g) {
+    bb <- sf::st_bbox(g)
+    isTRUE(bb[1]<=xl[2] && bb[3]>=xl[1] && bb[2]<=yl[2] && bb[4]>=yl[1])
+  },logical(1))
+  land <- land[keep,,drop=FALSE]
+  if(nrow(land)) {
+    land <- sf::st_make_valid(land)
+    land <- suppressWarnings(sf::st_crop(land,xmin=xl[1],xmax=xl[2],ymin=yl[1],ymax=yl[2]))
+  }
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = land, fill = "#E3E2D6", color = "#777E78", linewidth = .23) +
     ggplot2::geom_sf(data = sf::st_sf(geometry = domain$geometry),
