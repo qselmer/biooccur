@@ -2,12 +2,10 @@
 source("R/main.R")
 local({
   land <- domain_land()
-  bbox <- c(-82,-11,-77,-5)
-  full <- domain_shore_buffer(land,bbox,111120)
-  near <- domain_shore_buffer(land,bbox,37040)
-  far <- domain_shore_buffer(land,bbox,111120,37040)
-  island <- domain_island_buffer(land,domain_pick_land(land,-90.35,-.65),
-    c(-91.4,-1.5,-89.3,.3),55560)
+  full <- domain_mainland_zones(land,"south_america","west",-11,-5,c(0,20,60))
+  near <- full$zones[["0-20"]]
+  far <- full$zones[["20-60"]]
+  island <- domain_island_nmi(land,domain_pick_land(land,-90.35,-.65),30)
   cases <- list(continental=full,near_coast=near,distance_band=far,insular=island)
   tab <- base::do.call(base::rbind,lapply(names(cases),function(n) {
     message("Spatial audit: ",n)

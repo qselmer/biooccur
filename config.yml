@@ -1,4 +1,4 @@
-# Illustrative configuration; not executable yet.
+# Spatial configuration examples: docs/spatial-engine.md. Discovery/acquisition not yet implemented.
 project:
   name: example
 sources: [obis, gbif]

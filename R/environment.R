@@ -99,6 +99,8 @@ domain_metrics <- function(domain,land) {
     perimeter_km=sum(as.numeric(sf::st_length(sf::st_boundary(g))))/1000,
     centroid_lon=center[1],centroid_lat=center[2],
     xmin=unname(bbox[1]),ymin=unname(bbox[2]),xmax=unname(bbox[3]),ymax=unname(bbox[4]),
+    requested_min_distance_nmi=if(is.null(domain$min_distance_m)) NA_real_ else domain$min_distance_m/1852,
+    requested_max_distance_nmi=if(is.null(domain$distance_m)) NA_real_ else domain$distance_m/1852,
     requested_min_distance_km=if(is.null(domain$min_distance_m)) NA_real_ else domain$min_distance_m/1000,
     requested_max_distance_km=if(is.null(domain$distance_m)) NA_real_ else domain$distance_m/1000,
     geometry_valid=all(sf::st_is_valid(g)), crs="OGC:CRS84",
@@ -125,7 +127,8 @@ domain_buffer_audit <- function(domain,land,n_vertices=1500L,grid_n=35L,
   pts <- sf::st_as_sf(data.frame(lon=coords[,1],lat=coords[,2]),
     coords=c("lon","lat"),crs="OGC:CRS84")
   d <- as.numeric(sf::st_distance(pts,sf::st_combine(domain$reference)))
-  clip <- do.call(domain_bbox,as.list(domain$requested_bbox))$geometry
+  clip <- if(!is.null(domain$requested_clip)) domain$requested_clip else
+    do.call(domain_bbox,as.list(domain$requested_bbox))$geometry
   outside <- domain_s2_area_overlay(g,clip,"difference")/1e6
   on_land <- domain_land_area_m2(domain,land)/1e6
   lo <- domain$min_distance_m

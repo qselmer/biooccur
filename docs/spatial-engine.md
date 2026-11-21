@@ -84,3 +84,50 @@ User reported 34 passing expectations and one marine mask failure (crossing edge
 User reported 44 passing expectations, successful F01 and F02 plotting stages, but failure during F02 land-overlap metrics when repair returned nonpolygonal or empty output. Area-only operations now use native s2_intersection/s2_difference with semi-open polygon model, polygon-only output and validation, then s2_area without converting result back to sf. Lower-dimensional boundary contacts do not count as area. Invalid results still fail; no assumed zero or relaxed tolerance. Geometry-producing operations retain prior strict validation. Band audit likewise remains native to S2 after conversion of valid inputs. Added regression tests and per-panel metric messages. Reference: https://r-spatial.github.io/s2/reference/s2_options.html. New revision unexecuted.
 
 The remaining legacy land-overlap measurement in domain_buffer_audit has now been replaced with domain_land_area_m2. The audit regression test exercises that path directly. All distance and area tolerances remain unchanged. Execution pending.
+
+## Continental distance configuration (current contract)
+
+All public coastal distances are nautical miles (1 nmi = 1852 m internally). Continental modes use mainland shoreline only and mask all land including islands; no user longitude. Select continent, coast_side (west/east/both), lat_min/lat_max. Built-in provisional South America sector uses mainland point (-60,-15), true shoreline and inland sector divider, valid only when expanded requested latitudes remain within -53 to 7 degrees. This is not a globally certified ocean boundary. Other regions or out-of-range requests require mainland_reference_file (validated user-supplied mainland-only lines representing the selected side; user responsible for provenance). Latitudinal clipping approximates parallels with 0.05-degree segments. Regional nonpolar, non-dateline scope only. West/east are geographical sectors, not local edge normals. Internal legacy bbox/metre functions remain for compatibility, but old YAML is rejected explicitly. Island selection uses a point or polygon file and automatic bounds. All partitions derive from one common shoreline and marine domain; audits required after execution. Empty zones fail explicitly. Example YAML sections:
+
+```yaml
+spatial:
+  type: shore_buffer
+  continent: south_america
+  coast_side: west
+  lat_min: -16
+  lat_max: -4.5
+  distance_nmi: 150
+  land_resolution: f
+```
+
+```yaml
+spatial:
+  type: coastal_buffer
+  continent: south_america
+  coast_side: west
+  lat_min: -16
+  lat_max: -4.5
+  min_distance_nmi: 20
+  max_distance_nmi: 60
+```
+
+```yaml
+spatial:
+  type: coastal_zones
+  continent: south_america
+  coast_side: west
+  lat_min: -16
+  lat_max: -4.5
+  distance_breaks_nmi: [0, 5, 10, 20, 30, 60, 100, 150]
+```
+
+```yaml
+spatial:
+  type: island_buffer
+  island_lon: -90.35
+  island_lat: -0.65
+  min_distance_nmi: 0
+  max_distance_nmi: 30
+```
+
+Shiny design: continent and side selector, latitude interval and nmi inputs only; map preview and automatically derived longitude extent. No Shiny implementation yet. Keep default polygon config unchanged. Previous real audit: 52 checks passed; all four sampled distance/land/bbox audits passed; independent band closure failed (gap 11.45275 km², overlap 0.07078481 km²). New shared partition requires fresh validation; no tolerance relaxation.
