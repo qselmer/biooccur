@@ -1,3 +1,5 @@
+rm(list = ls()); gc(reset = TRUE)
+
 # Run: Rscript scripts/01_spatial_domain.R config.yml
 source("R/main.R")
 local({
