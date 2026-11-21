@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — complete native area audit migration
+
+- Fix remaining legacy land-overlap call in domain_buffer_audit.
+- Add regression test for native audit path and case-specific progress messages.
+- User confirmed construction of four real GSHHG domains; numerical audit execution pending.
+
 ## 0.0.2-dev — native S2 area diagnostics
 
 - User confirmed 44 passing expectations and F01 (152706.8 km²; 94.70236% marine); F02 metrics failed on a land-overlap repair.

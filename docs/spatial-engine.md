@@ -82,3 +82,5 @@ User reported 34 passing expectations and one marine mask failure (crossing edge
 ## Native S2 area diagnostics
 
 User reported 44 passing expectations, successful F01 and F02 plotting stages, but failure during F02 land-overlap metrics when repair returned nonpolygonal or empty output. Area-only operations now use native s2_intersection/s2_difference with semi-open polygon model, polygon-only output and validation, then s2_area without converting result back to sf. Lower-dimensional boundary contacts do not count as area. Invalid results still fail; no assumed zero or relaxed tolerance. Geometry-producing operations retain prior strict validation. Band audit likewise remains native to S2 after conversion of valid inputs. Added regression tests and per-panel metric messages. Reference: https://r-spatial.github.io/s2/reference/s2_options.html. New revision unexecuted.
+
+The remaining legacy land-overlap measurement in domain_buffer_audit has now been replaced with domain_land_area_m2. The audit regression test exercises that path directly. All distance and area tolerances remain unchanged. Execution pending.

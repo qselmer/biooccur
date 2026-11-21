@@ -48,3 +48,15 @@ testthat::test_that("native S2 band audit preserves exact partition", {
   audit <- domain_band_audit(full,near,far)
   testthat::expect_true(audit$pass)
 })
+
+testthat::test_that("buffer audit uses native area diagnostics, not reconstructed overlap", {
+  land <- sf::st_sf(geometry=domain_bbox(0,0,2,2)$geometry)
+  d <- domain_shore_buffer(land,c(-1,.2,1,1.8),50000)
+  fn <- domain_buffer_audit
+  isolated <- new.env(parent=environment(fn))
+  isolated$domain_land_overlap <- function(...) stop("Obsolete overlap path")
+  environment(fn) <- isolated
+  out <- fn(d,land,n_vertices=20L,grid_n=5L)
+  testthat::expect_true(is.finite(out$land_overlap_km2))
+  testthat::expect_equal(out$land_overlap_km2,domain_land_area_m2(d,land)/1e6)
+})

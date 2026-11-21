@@ -9,8 +9,11 @@ local({
   island <- domain_island_buffer(land,domain_pick_land(land,-90.35,-.65),
     c(-91.4,-1.5,-89.3,.3),55560)
   cases <- list(continental=full,near_coast=near,distance_band=far,insular=island)
-  tab <- base::do.call(base::rbind,lapply(names(cases),function(n)
-    cbind(case=n,domain_buffer_audit(cases[[n]],land))))
+  tab <- base::do.call(base::rbind,lapply(names(cases),function(n) {
+    message("Spatial audit: ",n)
+    cbind(case=n,domain_buffer_audit(cases[[n]],land))
+  }))
+  message("Spatial audit: band closure")
   bands <- domain_band_audit(full,near,far)
   dir.create("cout/spatial",recursive=TRUE,showWarnings=FALSE)
   utils::write.csv(tab,"cout/spatial/spatial_distance_audit.csv",row.names=FALSE)

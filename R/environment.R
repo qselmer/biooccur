@@ -127,7 +127,7 @@ domain_buffer_audit <- function(domain,land,n_vertices=1500L,grid_n=35L,
   d <- as.numeric(sf::st_distance(pts,sf::st_combine(domain$reference)))
   clip <- do.call(domain_bbox,as.list(domain$requested_bbox))$geometry
   outside <- domain_s2_area_overlay(g,clip,"difference")/1e6
-  on_land <- domain_area_m2(domain_land_overlap(domain,land))/1e6
+  on_land <- domain_land_area_m2(domain,land)/1e6
   lo <- domain$min_distance_m
   hi <- domain$distance_m
   excess <- pmax(lo-d,d-hi,0)
