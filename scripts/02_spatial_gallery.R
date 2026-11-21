@@ -8,16 +8,17 @@ local({
   domain_irregular <- domain_polygon(rbind(c(-93,-2),c(-91,-2),c(-88.5,-1),c(-89,2.2),c(-92,1)))
   domain_multiple <- domain_multipolygon(list(rbind(c(-92,-1.2),c(-90.8,-1.2),c(-90.8,.2),c(-92,.2)),rbind(c(-90.5,-.9),c(-89.2,-.9),c(-89.2,.4),c(-90.5,.4))))
   message("F02: continental marine buffer")
-  domain_continental <- domain_shore_buffer(land,c(-82,-11,-77,-5),111120)
+  coastal <- domain_mainland_zones(land,"south_america","west",-11,-5,c(0,20,60))
+  domain_continental <- coastal
   domain_radial <- domain_circle(-90.3,-.65,100000)
   domain_example_region <- domain_region(sf::st_sf(id="example",geometry=domain_bbox(-93,-2,-89,1.5)$geometry),"id","example")
   domain_with_holes <- domain_exclusion(rbind(c(-93,-2),c(-88.5,-2),c(-88.5,2),c(-93,2)),list(rbind(c(-91.8,-.9),c(-90.6,-.9),c(-90.6,.4),c(-91.8,.4))))
   domain_wkt <- domain_import(wkt="POLYGON ((-93 -2,-89 -2,-90 1.5,-93 -2))",crs=4326)
   message("F02: island selection and buffer")
   island <- domain_pick_land(land,-90.35,-.65)
-  domain_insular <- domain_island_buffer(land,island,c(-91.4,-1.5,-89.3,.3),55560)
+  domain_insular <- domain_island_nmi(land,island,30)
   message("F02: coastal distance band")
-  domain_distance_band <- domain_shore_buffer(land,c(-82,-11,-77,-5),111120,37040)
+  domain_distance_band <- coastal$zones[["20-60"]]
   domains <- list("A | Bounding box"=domain_rectangle,"B | Irregular polygon"=domain_irregular,"C | Multipolygon"=domain_multiple,
    "D | Coastal buffer: 0–60 nmi"=domain_continental,"E | Center and radius"=domain_radial,"F | Example region"=domain_example_region,
    "G | Internal exclusions"=domain_with_holes,"H | Imported WKT"=domain_wkt,"I | Island buffer: 0–30 nmi"=domain_insular,
@@ -25,7 +26,7 @@ local({
   message("F02: rendering reference maps")
   dir.create("cout/spatial",recursive=TRUE,showWarnings=FALSE)
   common_island <- c(-93,-2.1,-88.5,2.2)
-  common_coast <- c(-83,-11,-76.5,-5)
+  common_coast <- domain_query_bbox(coastal)
   plots <- lapply(seq_along(domains),function(i) {
     n <- names(domains)[i]
     extent <- if(i %in% c(1,2,6,7,8)) common_island else

@@ -2,6 +2,27 @@
 domain_from_config <- function(config,land=NULL) {
   s <- config$spatial
   if (!is.list(s) || is.null(s$type)) stop("Missing spatial configuration.")
+  marine_modes <- c("shore_buffer","coastal_buffer","coastal_zones","island_buffer")
+  if(s$type %in% marine_modes) {
+    if(!is.null(s$environment)&&!s$environment %in% c("marine","all"))
+      stop("Distance-based marine modes require environment: marine or all.")
+    if(is.null(land)) land <- domain_land(s$land_file,if(is.null(s$land_resolution)) "f" else s$land_resolution)
+    if(!is.null(s$bbox)||!is.null(s$distance_m)||!is.null(s$min_distance_m))
+      stop("Legacy buffer YAML: use latitude limits and nautical-mile distances; island mode uses island selection only.")
+    return(switch(s$type,
+      shore_buffer=domain_mainland_buffer(land,s$continent,s$coast_side,s$lat_min,s$lat_max,
+        s$distance_nmi,reference_file=s$mainland_reference_file),
+      coastal_buffer=domain_mainland_buffer(land,s$continent,s$coast_side,s$lat_min,s$lat_max,
+        s$max_distance_nmi,s$min_distance_nmi,s$mainland_reference_file),
+      coastal_zones=domain_mainland_zones(land,s$continent,s$coast_side,s$lat_min,s$lat_max,
+        unlist(s$distance_breaks_nmi),s$mainland_reference_file),
+      island_buffer={
+        island <- if(!is.null(s$island_file)) sf::st_read(s$island_file,quiet=TRUE) else
+          domain_pick_land(land,s$island_lon,s$island_lat)
+        domain_island_nmi(land,island,s$max_distance_nmi,
+          if(is.null(s$min_distance_nmi)) 0 else s$min_distance_nmi)
+      }))
+  }
   result <- switch(s$type,
     bbox = do.call(domain_bbox, as.list(s$bbox)),
     polygon = if (!is.null(s$wkt)) domain_import(wkt = s$wkt, crs = s$crs) else
@@ -11,17 +32,6 @@ domain_from_config <- function(config,land=NULL) {
     exclusion = domain_exclusion(do.call(rbind, s$vertices), lapply(s$holes, function(p) do.call(rbind, p))),
     file = domain_import(path = s$file, crs = s$crs, layer = s$layer),
     region = domain_region(sf::st_read(s$file, quiet = TRUE), s$id_column, unlist(s$ids)),
-    shore_buffer = domain_shore_buffer(if(is.null(land)) domain_land(s$land_file, if (is.null(s$land_resolution)) "f" else s$land_resolution) else land, unlist(s$bbox),
-      s$distance_m, if (is.null(s$min_distance_m)) 0 else s$min_distance_m),
-    island_buffer = {
-      if(is.null(land)) land <- domain_land(s$land_file, if (is.null(s$land_resolution)) "f" else s$land_resolution)
-      island <- if (!is.null(s$island_file)) sf::st_read(s$island_file,quiet=TRUE) else
-        domain_pick_land(land,s$island_lon,s$island_lat)
-      domain_island_buffer(land,island,unlist(s$bbox),s$distance_m,
-        if (is.null(s$min_distance_m)) 0 else s$min_distance_m)
-    },
-    coastal_buffer = domain_coastal_buffer(sf::st_read(s$file, quiet = TRUE), s$distance_m,
-      if (is.null(s$marine_mask)) NULL else sf::st_read(s$marine_mask, quiet = TRUE)),
     stop("Unknown spatial mode: ", s$type))
   environment <- if(is.null(s$environment)) "all" else s$environment
   if(environment %in% c("marine","terrestrial") && is.null(land))

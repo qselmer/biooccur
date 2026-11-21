@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2-dev — continental shoreline selection
+
+- Public coast_side west/east/both, latitude bounds, nautical miles; automatic longitude extent.
+- Provisional South America mainland sector and explicit custom reference for unsupported regions.
+- Shared marine distance partition, island-only reference and zone exports; previous audit closure failed, new tests pending.
+
 ## 0.0.2-dev — complete native area audit migration
 
 - Fix remaining legacy land-overlap call in domain_buffer_audit.

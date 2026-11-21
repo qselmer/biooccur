@@ -6,10 +6,9 @@ local({
   on.exit(options(old),add=TRUE)
   land <- domain_land()
   cases <- list(
-    continental=function() domain_shore_buffer(land,c(-82,-11,-77,-5),111120),
-    insular=function() domain_island_buffer(land,domain_pick_land(land,-90.35,-.65),
-        c(-91.4,-1.5,-89.3,.3),55560),
-    distance_band=function() domain_shore_buffer(land,c(-82,-11,-77,-5),111120,37040))
+    continental=function() domain_mainland_buffer(land,"south_america","west",-11,-5,60),
+    insular=function() domain_island_nmi(land,domain_pick_land(land,-90.35,-.65),30),
+    distance_band=function() domain_mainland_buffer(land,"south_america","west",-11,-5,60,20))
   for (name in names(cases)) {
     message("Integration: ",name)
     d <- cases[[name]]()
